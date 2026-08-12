@@ -112,6 +112,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/ml-service.md
 	@test -f docs/similarity.md
 	@test -f docs/api.md
+	@test -f docs/observability.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv

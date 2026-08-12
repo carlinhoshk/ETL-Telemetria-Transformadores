@@ -23,6 +23,25 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// handleLive is the liveness probe: process is up, no dependencies.
+func (s *Server) handleLive(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"ok"}`))
+}
+
+// handleReady is the readiness probe: dependencies reachable.
+func (s *Server) handleReady(w http.ResponseWriter, r *http.Request) {
+	checks := map[string]string{}
+	if err := s.deps.Store.Ping(r.Context()); err != nil {
+		checks["database"] = "unavailable"
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "not_ready", "checks": checks})
+		return
+	}
+	checks["database"] = "ok"
+	writeJSON(w, http.StatusOK, map[string]any{"status": "ready", "checks": checks})
+}
+
 func (s *Server) handleListTransformers(w http.ResponseWriter, r *http.Request) {
 	limit, offset := pageParams(r)
 	total, err := s.deps.Store.CountTransformers(r.Context())

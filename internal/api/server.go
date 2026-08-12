@@ -58,6 +58,8 @@ func New(deps Deps) *Server {
 
 	mux := s.mux
 	mux.HandleFunc("GET /health", s.handleHealth)
+	mux.HandleFunc("GET /livez", s.handleLive)
+	mux.HandleFunc("GET /readyz", s.handleReady)
 	mux.HandleFunc("GET /transformers", s.handleListTransformers)
 	mux.HandleFunc("GET /transformers/{id}", s.handleGetTransformer)
 	mux.HandleFunc("POST /transformers", s.handleCreateTransformer)
@@ -65,12 +67,13 @@ func New(deps Deps) *Server {
 	mux.HandleFunc("GET /transformers/{id}/events", s.handleEvents)
 	mux.HandleFunc("GET /transformers/{id}/similar", s.handleSimilar)
 	mux.HandleFunc("GET /transformers/{id}/statistics", s.handleStatistics)
+	mux.HandleFunc("GET /metrics", s.handleMetrics)
 	return s
 }
 
 // Handler returns the http.Handler (with middleware) for the server.
 func (s *Server) Handler() http.Handler {
-	return s.withRequestID(s.logRequests(s.mux))
+	return s.withRequestID(s.logRequests(s.observeMetrics(s.mux)))
 }
 
 // Run serves until ctx is cancelled.

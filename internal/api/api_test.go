@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -143,6 +144,35 @@ func TestHealthOK(t *testing.T) {
 	}
 	if rec.Header().Get("X-Request-Id") == "" {
 		t.Fatal("missing X-Request-Id header")
+	}
+}
+
+func TestLiveReady(t *testing.T) {
+	h := newTestServer(t, newFakeStore(), &fakeML{}).Handler()
+	if rec := doJSON(h, "GET", "/livez", nil); rec.Code != http.StatusOK {
+		t.Fatalf("livez status = %d, want 200", rec.Code)
+	}
+	if rec := doJSON(h, "GET", "/readyz", nil); rec.Code != http.StatusOK {
+		t.Fatalf("readyz status = %d, want 200", rec.Code)
+	}
+}
+
+func TestMetricsEndpoint(t *testing.T) {
+	h := newTestServer(t, newFakeStore(), &fakeML{}).Handler()
+	// Generate some traffic so the counters are non-zero.
+	h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/livez", nil))
+	h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/health", nil))
+
+	rec := doJSON(h, "GET", "/metrics", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("metrics status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "http_requests_total") {
+		t.Fatal("missing http_requests_total metric")
+	}
+	if !strings.Contains(body, "http_request_duration_seconds") {
+		t.Fatal("missing http_request_duration_seconds metric")
 	}
 }
 

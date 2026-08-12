@@ -144,6 +144,12 @@ registrado em
 ingestão já é assíncrona via MQTT (QoS 1), ELT é batch (dbt), serviço ML é
 stateless/rápido e não há workload longo. Sem Redis/queue/workers.
 
+**Fase 13 — Observability: DONE.** Logs estruturados JSON + `X-Request-Id`
+(correlação), métricas Prometheus em `GET /metrics`
+(`http_requests_total`, `http_request_duration_seconds`) e probes de
+liveness (`/livez`) e readiness (`/readyz`, checa DB). Detalhes em
+[docs/observability.md](docs/observability.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
