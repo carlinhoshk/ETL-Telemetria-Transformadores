@@ -73,6 +73,7 @@ Documentation).
 
 - [docs/architecture.md](docs/architecture.md)
 - [docs/data-model.md](docs/data-model.md)
+- [docs/domain.md](docs/domain.md)
 - [docs/telemetry-contract.md](docs/telemetry-contract.md)
 - [docs/api-contracts.md](docs/api-contracts.md)
 - [docs/siemens-emulation.md](docs/siemens-emulation.md)
@@ -80,9 +81,13 @@ Documentation).
 
 ## Estado
 
-**Fase 0 — Architecture: DONE.** Repositório, documentação, contratos e
-esqueleto de pastas. Sem código de produção ainda.
+**Fase 1 — Transformer domain: DONE.** Domínio do transformador (dados de
+projeto/engenharia), validação e gerador sintético de frota determinístico.
+A base histórica sintética está em `dbt/seeds/transformers.csv`
+(regenerável com `make seed`).
 
 ## Execução
 
-A partir da Fase 15: `docker compose up` sobe tudo (`make demo`).
+- `make build` / `make test` — compila e roda os testes Go.
+- `make seed` — regenera a base histórica sintética (`dbt/seeds/transformers.csv`).
+- A partir da Fase 15: `docker compose up` sobe tudo (`make demo`).
