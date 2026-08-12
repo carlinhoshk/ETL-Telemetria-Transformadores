@@ -118,6 +118,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/observability.md
 	@test -f docs/testing.md
 	@test -f docs/compose.md
+	@test -f docs/azure.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv

@@ -163,6 +163,12 @@ Go multi-stage, ML e dbt; healthchecks em todos os serviços. Verificado:
 5 serviços healthy, frota de 40 transformadores, dbt 45 PASS. Detalhes em
 [docs/compose.md](docs/compose.md).
 
+**Fase 16 — Azure: DONE (documentação).** Mapeamento local→Azure
+(IoT Hub, Event Hubs, ADLS, Postgres Flexible, Container Apps,
+Snowflake/Databricks) sem qualquer dependência de nuvem hoje. Contratos e
+payloads são preservados; dbt e API são portáveis. Detalhes em
+[docs/azure.md](docs/azure.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
