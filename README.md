@@ -121,6 +121,14 @@ passam. Detalhes em [docs/elt.md](docs/elt.md).
 analíticas (drill-down região/aplicação) funcionando. Detalhes em
 [docs/dimensional-model.md](docs/dimensional-model.md).
 
+**Fase 9/10 — Python ML service + Similarity: DONE.** Serviço Python
+stateless (http.server, sem framework): `features` (StandardScaler sobre
+features de design), `similarity` (baseline Euclidiana normalizada, sem
+LLM, score em [0,1]) e `anomaly` (IsolationForest). Rotas `GET /health`,
+`POST /similar`, `POST /anomaly`. 12 testes pytest passam. Detalhes em
+[docs/ml-service.md](docs/ml-service.md) e
+[docs/similarity.md](docs/similarity.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.

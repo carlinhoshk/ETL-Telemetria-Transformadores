@@ -1,7 +1,7 @@
 # Project: Transformer Digital Twin / Data Platform
 # Local development targets. Grows with each phase.
 
-.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db dbt dbt-silver dbt-gold
+.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db dbt dbt-silver dbt-gold ml-test ml-run
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -41,6 +41,12 @@ dbt-silver: ## Build silver models + run data tests
 dbt-gold: ## Build gold dimensional models + run data tests
 	cd dbt && ../.venv/bin/dbt run --profiles-dir . --select gold
 	cd dbt && ../.venv/bin/dbt test --profiles-dir . --select gold
+
+ml-test: ## Run the Python ML service tests
+	PYTHONPATH=python .venv/bin/pytest python/ml_service/tests -q
+
+ml-run: ## Run the Python ML service (localhost:8081)
+	PYTHONPATH=python .venv/bin/python -m ml_service --host 127.0.0.1 --port 8081
 
 seed: ## Regenerate the synthetic historical project base (dbt seed CSV)
 	go run ./cmd/etl generate -n 40 -seed 42 -out dbt/seeds/transformers.csv
@@ -100,6 +106,8 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/raw-data.md
 	@test -f docs/elt.md
 	@test -f docs/dimensional-model.md
+	@test -f docs/ml-service.md
+	@test -f docs/similarity.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv
