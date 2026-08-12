@@ -114,6 +114,13 @@ natural, normaliza timestamp/unidades, marca qualidade) e
 temperatura, `state_recomputed`). 20 testes de dados (schema + singulares)
 passam. Detalhes em [docs/elt.md](docs/elt.md).
 
+**Fase 8 — Dimensional model (gold): DONE.** Star schema: `dim_time`,
+`dim_transformer`, `dim_location` (sintético, determinístico) e
+`dim_sensor` + `fact_transformer_measurement` e `fact_transformer_event`
+(eventos ainda sem produtor). 25 testes de dados passam. Consultas
+analíticas (drill-down região/aplicação) funcionando. Detalhes em
+[docs/dimensional-model.md](docs/dimensional-model.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.

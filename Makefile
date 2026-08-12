@@ -99,6 +99,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/postgres.md
 	@test -f docs/raw-data.md
 	@test -f docs/elt.md
+	@test -f docs/dimensional-model.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv
