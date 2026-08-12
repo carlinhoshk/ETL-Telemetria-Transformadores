@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+
 	"etl-telemetria-transformadores/internal/domain"
 	"etl-telemetria-transformadores/internal/telemetry"
 )
@@ -71,6 +73,9 @@ func (d *DB) GetTransformer(ctx context.Context, id string) (domain.Transformer,
 	row := d.pool.QueryRow(ctx, `SELECT`+transformerCols+` FROM transformers WHERE transformer_id = $1`, id)
 	tr, err := scanTransformer(row)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Transformer{}, ErrNotFound
+		}
 		return domain.Transformer{}, fmt.Errorf("get transformer %s: %w", id, err)
 	}
 	return tr, nil
@@ -78,8 +83,8 @@ func (d *DB) GetTransformer(ctx context.Context, id string) (domain.Transformer,
 
 // InsertTransformer registers a new design record.
 func (d *DB) InsertTransformer(ctx context.Context, tr domain.Transformer) error {
-	q := `INSERT INTO transformers` + transformerCols[0:] + `
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`
+	q := `INSERT INTO transformers (` + transformerCols[0:] + `
+) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`
 	_, err := d.pool.Exec(ctx, q,
 		tr.ID, tr.RatedPowerMVA, tr.HVVoltageKV, tr.LVVoltageKV, tr.FrequencyHz,
 		tr.PhaseCount, string(tr.VectorGroup), tr.ImpedancePercent, string(tr.CoolingType),

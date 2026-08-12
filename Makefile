@@ -51,6 +51,9 @@ ml-run: ## Run the Python ML service (localhost:8081)
 api-test: ## Run the Go API handler tests (fakes, no DB)
 	go test ./internal/api/ -count=1
 
+e2e: ## E2E: MQTT -> ingestion -> PostgreSQL -> dbt silver
+	bash scripts/e2e.sh
+
 seed: ## Regenerate the synthetic historical project base (dbt seed CSV)
 	go run ./cmd/etl generate -n 40 -seed 42 -out dbt/seeds/transformers.csv
 
@@ -113,6 +116,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/similarity.md
 	@test -f docs/api.md
 	@test -f docs/observability.md
+	@test -f docs/testing.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv

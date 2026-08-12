@@ -150,6 +150,12 @@ stateless/rápido e não há workload longo. Sem Redis/queue/workers.
 liveness (`/livez`) e readiness (`/readyz`, checa DB). Detalhes em
 [docs/observability.md](docs/observability.md).
 
+**Fase 14 — Tests: DONE.** Go unit (domain, telemetry, messaging,
+ingestion, ml) e integração gated por `TEST_DATABASE_URL` (migrate, store,
+API contra Postgres real via httptest), 12 testes pytest do ML e E2E
+automatizado MQTT→ingestion→PostgreSQL→dbt silver (`scripts/e2e.sh` /
+`make e2e`). Detalhes em [docs/testing.md](docs/testing.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.

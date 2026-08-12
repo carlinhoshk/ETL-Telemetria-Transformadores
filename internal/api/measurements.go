@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"etl-telemetria-transformadores/internal/domain"
@@ -76,7 +77,7 @@ func (s *Server) handleSimilar(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	target, err := s.deps.Store.GetTransformer(r.Context(), id)
 	if err != nil {
-		if err == store.ErrNotFound {
+		if errors.Is(err, store.ErrNotFound) {
 			writeErr(w, http.StatusNotFound, "not_found", "transformer not found")
 			return
 		}
@@ -123,7 +124,7 @@ func (s *Server) handleCreateTransformer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if err := s.deps.Store.InsertTransformer(r.Context(), tr); err != nil {
-		if err == store.ErrConflict {
+		if errors.Is(err, store.ErrConflict) {
 			writeErr(w, http.StatusConflict, "conflict", "transformer already exists")
 			return
 		}

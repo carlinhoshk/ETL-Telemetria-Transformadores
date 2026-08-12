@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"etl-telemetria-transformadores/internal/store"
@@ -63,7 +64,7 @@ func (s *Server) handleListTransformers(w http.ResponseWriter, r *http.Request) 
 func (s *Server) handleGetTransformer(w http.ResponseWriter, r *http.Request) {
 	tr, err := s.deps.Store.GetTransformer(r.Context(), r.PathValue("id"))
 	if err != nil {
-		if err == store.ErrNotFound {
+		if errors.Is(err, store.ErrNotFound) {
 			writeErr(w, http.StatusNotFound, "not_found", "transformer not found")
 			return
 		}
