@@ -1,7 +1,7 @@
 # Project: Transformer Digital Twin / Data Platform
 # Local development targets. Grows with each phase.
 
-.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db
+.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db dbt dbt-silver dbt-gold
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -28,6 +28,19 @@ migrate: ## Apply goose migrations (needs db)
 test-db: ## Run database integration tests (needs db)
 	TEST_DATABASE_URL="postgres://postgres:postgres@localhost:5432/transformers?sslmode=disable" \
 		go test ./internal/migrate/ -count=1
+
+dbt: ## Full dbt pipeline: seed + run + test (needs db + data)
+	cd dbt && ../.venv/bin/dbt seed --profiles-dir .
+	cd dbt && ../.venv/bin/dbt run --profiles-dir .
+	cd dbt && ../.venv/bin/dbt test --profiles-dir .
+
+dbt-silver: ## Build silver models + run data tests
+	cd dbt && ../.venv/bin/dbt run --profiles-dir . --select silver
+	cd dbt && ../.venv/bin/dbt test --profiles-dir . --select silver
+
+dbt-gold: ## Build gold dimensional models + run data tests
+	cd dbt && ../.venv/bin/dbt run --profiles-dir . --select gold
+	cd dbt && ../.venv/bin/dbt test --profiles-dir . --select gold
 
 seed: ## Regenerate the synthetic historical project base (dbt seed CSV)
 	go run ./cmd/etl generate -n 40 -seed 42 -out dbt/seeds/transformers.csv
@@ -85,6 +98,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/ingestion.md
 	@test -f docs/postgres.md
 	@test -f docs/raw-data.md
+	@test -f docs/elt.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv

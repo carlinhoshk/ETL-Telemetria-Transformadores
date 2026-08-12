@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: operational
+    schema: public
+    description: >
+      Operational (OLTP) schema written by the Go ingestion service
+      (Phase 5/6): bronze raw capture + normalized measurements + design base.
+    tables:
+      - name: raw_telemetry
+        description: Bronze raw telemetry events with verbatim JSONB payload.
+        columns:
+          - name: id
+            description: Dedup key {transformer_id}@{timestamp}.
+          - name: transformer_id
+          - name: schema_version
+          - name: topic
+          - name: source
+          - name: ingested_at
+          - name: payload
+      - name: measurements
+        description: Normalized telemetry measurements (operational hot path).
+      - name: transformers
+        description: Design/project base of historical transformers.
+      - name: events
+        description: State/domain events.

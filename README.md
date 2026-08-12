@@ -107,6 +107,13 @@ JSONB, ingestão idempotente por chave natural), store de ingestão PG
 backfill `cmd/backfill` para replay/auditoria de dumps JSONL. Detalhes em
 [docs/raw-data.md](docs/raw-data.md).
 
+**Fase 7 — ETL/ELT (bronze→silver): DONE.** Pipeline dbt reproduzível:
+`stg_telemetry` (extrai payload JSONB, valida, deduplica por chave
+natural, normaliza timestamp/unidades, marca qualidade) e
+`int_telemetry` (campos derivados: `thermal_stress_index`, margens de
+temperatura, `state_recomputed`). 20 testes de dados (schema + singulares)
+passam. Detalhes em [docs/elt.md](docs/elt.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.

@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: stg_telemetry
+    description: Staged telemetry extracted from bronze raw payload, deduplicated and normalized.
+    columns:
+      - name: id
+        description: Bronze dedup key.
+        tests:
+          - not_null
+      - name: transformer_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('operational', 'transformers')
+              field: transformer_id
+      - name: ts
+        description: Normalized payload timestamp (timestamptz).
+        tests:
+          - not_null
+      - name: load_percent
+        tests:
+          - not_null
+      - name: winding_temperature_c
+        tests:
+          - not_null
+      - name: oil_temperature_c
+        tests:
+          - not_null
+      - name: state
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['NORMAL', 'WARNING', 'CRITICAL']
+      - name: quality_flag
+        tests:
+          - accepted_values:
+              values: ['complete', 'incomplete']
+    tests:
+      - unique_telemetry_key:
+          columns:
+            - transformer_id
+            - ts
+
+  - name: int_telemetry
+    description: Enriched silver measurements with derived fields.
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+      - name: thermal_stress_index
+        description: Weighted thermal stress in [0,1].
+        tests:
+          - not_null
+      - name: state_recomputed
+        tests:
+          - accepted_values:
+              values: ['NORMAL', 'WARNING', 'CRITICAL']

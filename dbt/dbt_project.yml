@@ -1,0 +1,53 @@
+name: transformer_platform
+version: 1.0.0
+config-version: 2
+
+profile: transformer_platform
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  critical_winding_c: 105.0
+  critical_oil_c: 100.0
+  critical_load_percent: 140.0
+
+models:
+  transformer_platform:
+    bronze:
+      +materialized: view
+    silver:
+      +materialized: table
+    gold:
+      +materialized: table
+
+seeds:
+  transformer_platform:
+    transformers:
+      +schema: seed
+      +column_types:
+        transformer_id: text
+        rated_power_mva: numeric
+        hv_voltage_kv: numeric
+        lv_voltage_kv: numeric
+        frequency_hz: integer
+        phase_count: integer
+        vector_group: text
+        impedance_percent: numeric
+        cooling_type: text
+        commissioning_year: integer
+        application: text
+        no_load_loss_kw: numeric
+        load_loss_kw: numeric
+        total_mass_t: numeric
+        length_m: numeric
+        width_m: numeric
+        height_m: numeric
+
+tests:
+  transformer_platform:
+    +store_failures: true
