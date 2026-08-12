@@ -52,8 +52,12 @@ Verificado: `E2E PASS` (raw=109, measurements=109, stg_telemetry=109).
 
 ```sh
 make test        # Go unit + integração (sem DB: skips)
-make test-db     # integração com DB (TEST_DATABASE_URL)
+make test-db     # integração com DB (TEST_DATABASE_URL, serial)
 make api-test    # handlers da API com fakes (rápido, sem DB)
 make e2e         # fluxo completo broker -> ingestion -> PG -> dbt
 make ml-test     # pytest do serviço ML
 ```
+
+Os alvos `test` e `test-db` usam `go test -p 1`: os pacotes de integração
+compartilham o mesmo banco scratch e rodar em paralelo produziria corrida
+entre truncates/inserts.

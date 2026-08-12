@@ -28,7 +28,7 @@ DATABASE_URL="$PGURL" go run ./cmd/dbmigrate up >/dev/null
 
 echo "== 3. ingestion (postgres store) =="
 go build -o /tmp/ct-e2e-ing ./cmd/ingestion
-/tmp/ct-e2e-ing -broker "$BROKER" -store postgres >/tmp/ct-e2e-ing.log 2>&1 &
+DATABASE_URL="$PGURL" /tmp/ct-e2e-ing -broker "$BROKER" -store postgres >/tmp/ct-e2e-ing.log 2>&1 &
 ING_PID=$!
 sleep 2
 

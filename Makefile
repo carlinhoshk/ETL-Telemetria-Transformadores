@@ -10,8 +10,8 @@ help: ## Show available targets
 build: ## Compile all Go packages
 	go build ./...
 
-test: ## Run all Go tests
-	go test ./...
+test: ## Run all Go tests (serial, shared-DB integration safe)
+	go test -p 1 ./...
 
 db: ## Start local PostgreSQL (docker, operational model)
 	docker run -d --name transformers-postgres \
@@ -25,9 +25,9 @@ db-stop: ## Stop and remove local PostgreSQL
 migrate: ## Apply goose migrations (needs db)
 	go run ./cmd/dbmigrate up
 
-test-db: ## Run database integration tests (needs db)
+test-db: ## Run all DB integration tests (needs db up, serial)
 	TEST_DATABASE_URL="postgres://postgres:postgres@localhost:5432/transformers?sslmode=disable" \
-		go test ./internal/migrate/ -count=1
+		go test -p 1 -count=1 ./internal/...
 
 dbt: ## Full dbt pipeline: seed + run + test (needs db + data)
 	cd dbt && ../.venv/bin/dbt seed --profiles-dir .
