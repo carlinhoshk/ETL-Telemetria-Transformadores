@@ -138,6 +138,12 @@ erro em envelope `{error: {code, message}}` e interfaces (`Store`,
 `SimilarityClient`) para teste sem banco. Detalhes em
 [docs/api.md](docs/api.md).
 
+**Fase 12 — Async processing: SKIPPED (documentado).** Avaliado e
+registrado em
+[docs/adr/ADR-0007-skip-async-processing.md](docs/adr/ADR-0007-skip-async-processing.md):
+ingestão já é assíncrona via MQTT (QoS 1), ELT é batch (dbt), serviço ML é
+stateless/rápido e não há workload longo. Sem Redis/queue/workers.
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
