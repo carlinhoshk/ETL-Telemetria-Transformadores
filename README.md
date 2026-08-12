@@ -129,6 +129,15 @@ LLM, score em [0,1]) e `anomaly` (IsolationForest). Rotas `GET /health`,
 [docs/ml-service.md](docs/ml-service.md) e
 [docs/similarity.md](docs/similarity.md).
 
+**Fase 11 — Go API: DONE.** API REST (`cmd/api` + `internal/api`) com
+rotas: `GET /health`, `GET /transformers`, `POST /transformers`,
+`GET /transformers/{id}`, `.../{id}/telemetry`, `.../{id}/events`,
+`.../{id}/similar` (delega ao serviço ML), `.../{id}/statistics`.
+`X-Request-Id`, logs JSON, paginação com `X-Total-Count`, respostas de
+erro em envelope `{error: {code, message}}` e interfaces (`Store`,
+`SimilarityClient`) para teste sem banco. Detalhes em
+[docs/api.md](docs/api.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
