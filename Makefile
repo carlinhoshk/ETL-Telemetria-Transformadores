@@ -1,7 +1,7 @@
 # Project: Transformer Digital Twin / Data Platform
 # Local development targets. Grows with each phase.
 
-.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db dbt dbt-silver dbt-gold ml-test ml-run api-test e2e demo
+.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db dbt dbt-silver dbt-gold ml-test ml-run api-test e2e demo jupyter jupyter-deps nb-build nb-run
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -50,6 +50,20 @@ ml-run: ## Run the Python ML service (localhost:8081)
 
 api-test: ## Run the Go API handler tests (fakes, no DB)
 	go test ./internal/api/ -count=1
+
+jupyter-deps: ## Install notebook dependencies into .venv
+	.venv/bin/pip install -r notebooks/requirements-notebooks.txt
+
+jupyter: ## Launch Jupyter Lab with the project autoloaded
+	PYTHONPATH=python:notebooks .venv/bin/jupyter lab notebooks/
+
+nb-build: ## Regenerate the 5 portfolio notebooks from notebooks/build_notebooks.py
+	.venv/bin/python notebooks/build_notebooks.py
+
+nb-run: ## Execute all notebooks headless (needs db, ml-run and api up)
+	for f in notebooks/0*.ipynb; do \
+		.venv/bin/jupyter nbconvert --to notebook --execute --inplace "$$f" || exit 1; \
+	done
 
 e2e: ## E2E: MQTT -> ingestion -> PostgreSQL -> dbt silver
 	bash scripts/e2e.sh
@@ -122,6 +136,13 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv
+	@test -f notebooks/build_notebooks.py
+	@test -f notebooks/common.py
+	@test -s notebooks/01_historical_base.ipynb
+	@test -s notebooks/02_sql_pipeline.ipynb
+	@test -s notebooks/03_integrations.ipynb
+	@test -s notebooks/04_similarity.ipynb
+	@test -s notebooks/05_ml_services.ipynb
 
 demo: ## Full demo: compose stack + simulate + dbt (+ print API sample)
 	@docker compose up -d --build

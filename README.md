@@ -158,6 +158,31 @@ Compose: `docker compose up -d` (sempre-on: postgres, mosquitto, ml,
 ingestion, api) + jobs `docker compose run --rm simulator` e `dbt`.
 Portas: 5432, 1883, 8080, 8081.
 
+## Notebooks (portfólio)
+
+Cinco notebooks "finos" (`notebooks/`) mapeando os requisitos da vaga
+(Inova Talentos / Siemens Energy), reutilizando os módulos e serviços
+reais do projeto — nada de Data Science disfarçado (AGENTS.md):
+
+| Notebook | Requisito |
+|---|---|
+| `01_historical_base.ipynb` | Estruturar e preparar bases históricas |
+| `02_sql_pipeline.ipynb` | Consultas SQL e pipelines (bronze→silver→gold) |
+| `03_integrations.ipynb` | Integrações banco ↔ API ↔ plataformas |
+| `04_similarity.ipynb` | Mecanismo de similaridade entre projetos |
+| `05_ml_services.ipynb` | Serviços de IA (similaridade + anomalia) |
+
+```sh
+make jupyter-deps        # deps do notebook (uma vez)
+make nb-build            # regenera os .ipynb a partir de build_notebooks.py
+make nb-run              # executa todos headless (precisa db, ml-run, api)
+make jupyter             # abre Jupyter Lab
+```
+
+Os notebooks importam `notebooks/common.py` e os serviços `ml_service`,
+Go API e PostgreSQL já em execução (subir com `make ml-run` e `make api`
+ou `docker compose up -d`).
+
 ## Testing
 
 - Go unit (domain, telemetry, messaging, ingestion, ml).

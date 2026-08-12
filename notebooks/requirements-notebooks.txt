@@ -1,0 +1,6 @@
+# Notebook dependencies — separate from the ML service requirements.
+# Install into the project venv:  make jupyter-deps
+jupyter>=1.0
+ipykernel>=6.29
+matplotlib>=3.8
+requests>=2.31
