@@ -76,20 +76,21 @@ Documentation).
 - [docs/domain.md](docs/domain.md)
 - [docs/telemetry-contract.md](docs/telemetry-contract.md)
 - [docs/telemetry-model.md](docs/telemetry-model.md)
+- [docs/mqtt.md](docs/mqtt.md)
 - [docs/api-contracts.md](docs/api-contracts.md)
 - [docs/siemens-emulation.md](docs/siemens-emulation.md)
 - [docs/adr/](docs/adr/)
 
 ## Estado
 
-**Fase 2 — Transformer simulator: DONE.** Simulador Go com modelo físico
-plausível (carga → temperaturas de óleo/enrolamento, inércia térmica,
-estados NORMAL/WARNING/CRITICAL), determinístico por seed.
-Saída em JSON Lines; o transporte MQTT chega na Fase 3.
+**Fase 3 — Event ingestion (MQTT): DONE.** Simulador publica telemetria no
+tópico `transformers/{id}/telemetry` (QoS 1, payload versionado) via broker
+Mosquitto local. Tópicos e helpers em `internal/messaging`.
 
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
 - `make seed` — regenera a base histórica sintética (`dbt/seeds/transformers.csv`).
-- `make simulate` — dry run curto de telemetria no stdout.
+- `make simulate` — dry run curto de telemetria no stdout (sem broker).
+- `make mqtt-broker` + `make publish` — sobe o Mosquitto e publica telemetria.
 - A partir da Fase 15: `docker compose up` sobe tudo (`make demo`).
