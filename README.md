@@ -75,19 +75,21 @@ Documentation).
 - [docs/data-model.md](docs/data-model.md)
 - [docs/domain.md](docs/domain.md)
 - [docs/telemetry-contract.md](docs/telemetry-contract.md)
+- [docs/telemetry-model.md](docs/telemetry-model.md)
 - [docs/api-contracts.md](docs/api-contracts.md)
 - [docs/siemens-emulation.md](docs/siemens-emulation.md)
 - [docs/adr/](docs/adr/)
 
 ## Estado
 
-**Fase 1 — Transformer domain: DONE.** Domínio do transformador (dados de
-projeto/engenharia), validação e gerador sintético de frota determinístico.
-A base histórica sintética está em `dbt/seeds/transformers.csv`
-(regenerável com `make seed`).
+**Fase 2 — Transformer simulator: DONE.** Simulador Go com modelo físico
+plausível (carga → temperaturas de óleo/enrolamento, inércia térmica,
+estados NORMAL/WARNING/CRITICAL), determinístico por seed.
+Saída em JSON Lines; o transporte MQTT chega na Fase 3.
 
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
 - `make seed` — regenera a base histórica sintética (`dbt/seeds/transformers.csv`).
+- `make simulate` — dry run curto de telemetria no stdout.
 - A partir da Fase 15: `docker compose up` sobe tudo (`make demo`).

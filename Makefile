@@ -16,14 +16,18 @@ test: ## Run all Go tests
 seed: ## Regenerate the synthetic historical project base (dbt seed CSV)
 	go run ./cmd/etl generate -n 40 -seed 42 -out dbt/seeds/transformers.csv
 
+simulate: ## Run a short telemetry dry run (stdout, JSON Lines)
+	go run ./cmd/simulator -n 4 -interval 5 -seed 42 -intensity 1.0 -ticks 3
+
 check: ## Consistency checks (docs, formatting) - grows per phase
-	@echo "Phase 1: docs present"
+	@echo "Phase 2: docs present"
 	@test -f AGENTS.md
 	@test -f README.md
 	@test -f docs/architecture.md
 	@test -f docs/data-model.md
 	@test -f docs/domain.md
 	@test -f docs/telemetry-contract.md
+	@test -f docs/telemetry-model.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv
