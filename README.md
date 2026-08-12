@@ -100,6 +100,13 @@ goose (SQL, nada auto-gerado), CLI `cmd/dbmigrate`, camada de conexão
 pgx em `internal/store` e teste de integração (gateado por
 `TEST_DATABASE_URL`). Detalhes em [docs/postgres.md](docs/postgres.md).
 
+**Fase 6 — Raw historical data: DONE.** Camada bronze persistida no
+Postgres: `raw_telemetry`/`raw_events` (payload original verbatim em
+JSONB, ingestão idempotente por chave natural), store de ingestão PG
+(`internal/store`), seeding do registro a partir do CSV e conector de
+backfill `cmd/backfill` para replay/auditoria de dumps JSONL. Detalhes em
+[docs/raw-data.md](docs/raw-data.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.

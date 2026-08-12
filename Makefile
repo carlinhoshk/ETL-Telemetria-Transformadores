@@ -1,7 +1,7 @@
 # Project: Transformer Digital Twin / Data Platform
 # Local development targets. Grows with each phase.
 
-.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest smoke db db-stop migrate test-db
+.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -48,7 +48,15 @@ publish: ## Publish simulated telemetry over MQTT (needs mqtt-broker)
 	go run ./cmd/simulator -broker tcp://localhost:1883 -n 4 -interval 5 -seed 42 -ticks 5
 
 ingest: ## Run the ingestion service (bronze JSONL sink; needs mqtt-broker)
-	go run ./cmd/ingestion -broker tcp://localhost:1883 -store data/bronze.jsonl
+	go run ./cmd/ingestion -broker tcp://localhost:1883 -store jsonl -jsonl-path data/bronze.jsonl
+
+ingest-db: ## Run ingestion with the PostgreSQL sink (needs db + mqtt-broker)
+	DATABASE_URL="postgres://postgres:postgres@localhost:5432/transformers?sslmode=disable" \
+		go run ./cmd/ingestion -broker tcp://localhost:1883 -store postgres
+
+backfill: ## Replay a JSONL bronze dump into PostgreSQL (needs db)
+	DATABASE_URL="postgres://postgres:postgres@localhost:5432/transformers?sslmode=disable" \
+		go run ./cmd/backfill -in data/bronze.jsonl
 
 smoke: ## End-to-end smoke: broker up (if none), publish telemetry, ingest to bronze
 	@rm -f /tmp/ct-ing.pid /tmp/ct-smoke-ing.log data/bronze.jsonl
@@ -76,6 +84,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/mqtt.md
 	@test -f docs/ingestion.md
 	@test -f docs/postgres.md
+	@test -f docs/raw-data.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv

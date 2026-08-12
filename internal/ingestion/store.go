@@ -13,13 +13,13 @@ import (
 
 // RawRecord preserves the original event for replay and audit (Phase 6).
 type RawRecord struct {
-	ID            string `json:"id"`
-	TransformerID string `json:"transformer_id"`
-	SchemaVersion int    `json:"schema_version"`
-	Topic         string `json:"topic"`
-	Source        string `json:"source"`
-	ReceivedAt    string `json:"received_at"`
-	Payload       []byte `json:"payload"`
+	ID            string          `json:"id"`
+	TransformerID string          `json:"transformer_id"`
+	SchemaVersion int             `json:"schema_version"`
+	Topic         string          `json:"topic"`
+	Source        string          `json:"source"`
+	ReceivedAt    string          `json:"received_at"`
+	Payload       json.RawMessage `json:"payload"`
 }
 
 // Store persists normalized measurements and their raw provenance.

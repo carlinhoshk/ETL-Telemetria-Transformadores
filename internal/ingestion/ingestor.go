@@ -2,6 +2,7 @@ package ingestion
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -136,7 +137,7 @@ func (i *Ingestor) handleMessage(_ mqtt.Client, msg mqtt.Message) {
 		Topic:         msg.Topic(),
 		Source:        i.source,
 		ReceivedAt:    now.Format(time.RFC3339),
-		Payload:       msg.Payload(),
+		Payload:       json.RawMessage(msg.Payload()),
 	}); err != nil {
 		i.metrics.StoreErrors.Add(1)
 		i.logger.Error("raw write failed", "transformer_id", m.TransformerID, "error", err)

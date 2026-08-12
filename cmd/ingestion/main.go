@@ -1,13 +1,16 @@
 // Command ingestion runs the MQTT ingestion service: it subscribes to
 // transformers/+/telemetry, validates and normalizes each message and writes
-// it to bronze (raw + normalized). Structured JSON logs, basic metrics,
-// idempotency and graceful shutdown.
+// it to bronze (raw + normalized). Supports JSONL (local) and PostgreSQL
+// (platform) sinks. Structured JSON logs, basic metrics, idempotency and
+// graceful shutdown.
 //
-//	go run ./cmd/ingestion -broker tcp://localhost:1883 -store data/bronze.jsonl
+//	go run ./cmd/ingestion -broker tcp://localhost:1883 -store jsonl
+//	DATABASE_URL=... go run ./cmd/ingestion -broker tcp://localhost:1883 -store postgres
 package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"os"
 	"os/signal"
@@ -16,14 +19,19 @@ import (
 
 	"log/slog"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"etl-telemetria-transformadores/internal/domain"
 	"etl-telemetria-transformadores/internal/ingestion"
+	"etl-telemetria-transformadores/internal/migrate"
+	"etl-telemetria-transformadores/internal/store"
 )
 
 func main() {
 	broker := flag.String("broker", "tcp://localhost:1883", "MQTT broker URL")
 	clientID := flag.String("client-id", "ingestion", "MQTT client id")
-	storePath := flag.String("store", "data/bronze.jsonl", "JSONL bronze sink (Phase 5: PostgreSQL)")
+	storeKind := flag.String("store", "jsonl", "sink: jsonl (data/bronze.jsonl) or postgres")
+	storePath := flag.String("jsonl-path", "data/bronze.jsonl", "JSONL bronze path (jsonl sink)")
 	csvPath := flag.String("csv", "dbt/seeds/transformers.csv", "fleet CSV (valid transformer registry)")
 	maxSkew := flag.Duration("max-skew", 5*time.Minute, "allowed timestamp skew from now")
 	flag.Parse()
@@ -46,14 +54,52 @@ func main() {
 		ids = append(ids, tr.ID)
 	}
 
-	store, err := ingestion.NewJSONLStore(*storePath)
-	if err != nil {
-		logger.Error("open store", "error", err)
-		os.Exit(1)
+	var sink ingestion.Store
+	closeSink := func() {}
+	switch *storeKind {
+	case "postgres":
+		dsn := os.Getenv("DATABASE_URL")
+		db, err := store.Open(context.Background(), dsn)
+		if err != nil {
+			logger.Error("open postgres store", "error", err)
+			os.Exit(1)
+		}
+		closeSink = db.Close
+		// Ensure schema exists (idempotent), so a fresh local stack just works.
+		sqlDB, err := sql.Open("pgx", dsn)
+		if err != nil {
+			logger.Error("open migration db", "error", err)
+			os.Exit(1)
+		}
+		if err := migrate.EnsureUp(sqlDB, "migrations"); err != nil {
+			logger.Error("migrate", "error", err)
+			sqlDB.Close()
+			os.Exit(1)
+		}
+		sqlDB.Close()
+		// Seed the design registry (FK target for raw_telemetry/measurements).
+		if _, err := db.UpsertTransformers(context.Background(), fleet); err != nil {
+			logger.Error("upsert transformers", "error", err)
+			os.Exit(1)
+		}
+		sink = db.NewIngestionStore()
+		logger.Info("sink", "kind", "postgres")
+	case "jsonl":
+		js, err := ingestion.NewJSONLStore(*storePath)
+		if err != nil {
+			logger.Error("open store", "error", err)
+			os.Exit(1)
+		}
+		defer js.Close()
+		sink = js
+		logger.Info("sink", "kind", "jsonl", "path", *storePath)
+	default:
+		logger.Error("unknown store kind", "store", *storeKind)
+		os.Exit(2)
 	}
-	defer store.Close()
+	defer closeSink()
 
-	ing := ingestion.NewIngestor(logger, ingestion.NewValidator(ids, *maxSkew), store, "mqtt")
+	ing := ingestion.NewIngestor(logger, ingestion.NewValidator(ids, *maxSkew), sink, "mqtt")
 
 	if err := ing.Connect(*broker, *clientID); err != nil {
 		logger.Error("mqtt connect", "error", err)
