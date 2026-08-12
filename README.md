@@ -94,6 +94,12 @@ estado, timestamp), normaliza (recomputa `state`), deduplica por
 normalizada). Logs JSON estruturados, métricas básicas e shutdown
 gracioso. Detalhes em [docs/ingestion.md](docs/ingestion.md).
 
+**Fase 5 — PostgreSQL: DONE.** Modelo operacional normalizado
+(`transformers`, `measurements`, `events`, `maintenance`) com migrations
+goose (SQL, nada auto-gerado), CLI `cmd/dbmigrate`, camada de conexão
+pgx em `internal/store` e teste de integração (gateado por
+`TEST_DATABASE_URL`). Detalhes em [docs/postgres.md](docs/postgres.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
@@ -102,4 +108,5 @@ gracioso. Detalhes em [docs/ingestion.md](docs/ingestion.md).
 - `make mqtt-broker` + `make publish` — sobe o Mosquitto e publica telemetria.
 - `make ingest` — roda o ingestion (bronze JSONL em `data/bronze.jsonl`).
 - `make smoke` — loop fim a fim curto (broker+simulador+ingestion).
+- `make db` / `make migrate` / `make test-db` — Postgres local, migrations goose e teste de integração.
 - A partir da Fase 15: `docker compose up` sobe tudo (`make demo`).

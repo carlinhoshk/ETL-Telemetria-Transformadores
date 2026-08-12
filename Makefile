@@ -1,7 +1,7 @@
 # Project: Transformer Digital Twin / Data Platform
 # Local development targets. Grows with each phase.
 
-.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest smoke
+.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest smoke db db-stop migrate test-db
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -12,6 +12,22 @@ build: ## Compile all Go packages
 
 test: ## Run all Go tests
 	go test ./...
+
+db: ## Start local PostgreSQL (docker, operational model)
+	docker run -d --name transformers-postgres \
+		-e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=transformers \
+		-p 5432:5432 -v transformers-pgdata:/var/lib/postgresql/data \
+		postgres:16-alpine
+
+db-stop: ## Stop and remove local PostgreSQL
+	docker rm -f transformers-postgres || true
+
+migrate: ## Apply goose migrations (needs db)
+	go run ./cmd/dbmigrate up
+
+test-db: ## Run database integration tests (needs db)
+	TEST_DATABASE_URL="postgres://postgres:postgres@localhost:5432/transformers?sslmode=disable" \
+		go test ./internal/migrate/ -count=1
 
 seed: ## Regenerate the synthetic historical project base (dbt seed CSV)
 	go run ./cmd/etl generate -n 40 -seed 42 -out dbt/seeds/transformers.csv
@@ -59,6 +75,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/telemetry-model.md
 	@test -f docs/mqtt.md
 	@test -f docs/ingestion.md
+	@test -f docs/postgres.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv
