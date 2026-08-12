@@ -1,7 +1,7 @@
 # Project: Transformer Digital Twin / Data Platform
 # Local development targets. Grows with each phase.
 
-.PHONY: help check build test seed demo
+.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest smoke
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -31,6 +31,23 @@ mqtt-broker-stop: ## Stop and remove the local Mosquitto broker
 publish: ## Publish simulated telemetry over MQTT (needs mqtt-broker)
 	go run ./cmd/simulator -broker tcp://localhost:1883 -n 4 -interval 5 -seed 42 -ticks 5
 
+ingest: ## Run the ingestion service (bronze JSONL sink; needs mqtt-broker)
+	go run ./cmd/ingestion -broker tcp://localhost:1883 -store data/bronze.jsonl
+
+smoke: ## End-to-end smoke: broker up (if none), publish telemetry, ingest to bronze
+	@rm -f /tmp/ct-ing.pid /tmp/ct-smoke-ing.log data/bronze.jsonl
+	@if ! ss -ltn | grep -q ':1883 '; then \
+		docker run -d --name ct-smoke-mosq -p 1883:1883 eclipse-mosquitto:2 >/dev/null && sleep 2; \
+	fi
+	@go build -o /tmp/ct-ing ./cmd/ingestion
+	@/tmp/ct-ing -broker tcp://127.0.0.1:1883 -store data/bronze.jsonl >/tmp/ct-smoke-ing.log 2>&1 & echo $$! > /tmp/ct-ing.pid
+	@sleep 2
+	@go run ./cmd/simulator -broker tcp://127.0.0.1:1883 -n 2 -ticks 3 -interval 1
+	@sleep 1
+	@kill -INT $$(cat /tmp/ct-ing.pid) 2>/dev/null || true
+	@docker rm -f ct-smoke-mosq >/dev/null 2>&1 || true
+	@test -s data/bronze.jsonl && echo "smoke OK: bronze has $$(wc -l < data/bronze.jsonl) lines" || (echo "smoke FAILED"; exit 1)
+
 check: ## Consistency checks (docs, formatting) - grows per phase
 	@echo "Phase 3: docs present"
 	@test -f AGENTS.md
@@ -41,6 +58,7 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/telemetry-contract.md
 	@test -f docs/telemetry-model.md
 	@test -f docs/mqtt.md
+	@test -f docs/ingestion.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv

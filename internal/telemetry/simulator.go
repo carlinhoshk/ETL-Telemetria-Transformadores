@@ -134,7 +134,7 @@ func (s *Simulator) Next() ([]Measurement, error) {
 			OilLevelPercent: round1(oilLevel),
 			CurrentA:        round1(current),
 			VoltageKV:       round1(voltage),
-			State:           classify(unit.windingTempC, unit.oilTempC, load),
+			State:           ClassifyState(unit.windingTempC, unit.oilTempC, load),
 		})
 	}
 	return out, nil

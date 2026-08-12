@@ -87,10 +87,19 @@ Documentation).
 tópico `transformers/{id}/telemetry` (QoS 1, payload versionado) via broker
 Mosquitto local. Tópicos e helpers em `internal/messaging`.
 
+**Fase 4 — Ingestion service (Go): DONE.** Serviço assina
+`transformers/+/telemetry`, valida (schema, registro, faixas físicas,
+estado, timestamp), normaliza (recomputa `state`), deduplica por
+`{id}@{timestamp}` e persiste bronze (JSONL: raw provenance + measurement
+normalizada). Logs JSON estruturados, métricas básicas e shutdown
+gracioso. Detalhes em [docs/ingestion.md](docs/ingestion.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.
 - `make seed` — regenera a base histórica sintética (`dbt/seeds/transformers.csv`).
 - `make simulate` — dry run curto de telemetria no stdout (sem broker).
 - `make mqtt-broker` + `make publish` — sobe o Mosquitto e publica telemetria.
+- `make ingest` — roda o ingestion (bronze JSONL em `data/bronze.jsonl`).
+- `make smoke` — loop fim a fim curto (broker+simulador+ingestion).
 - A partir da Fase 15: `docker compose up` sobe tudo (`make demo`).

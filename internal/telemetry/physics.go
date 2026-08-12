@@ -72,8 +72,9 @@ const (
 	ambientAmpC  = 5.0
 )
 
-// classify maps (winding, oil, load) to a state using the exported thresholds.
-func classify(windingC, oilC, loadPercent float64) string {
+// ClassifyState maps (winding, oil, load) to a state using the exported
+// thresholds. Exported so ingestion and silver layers reuse the same rules.
+func ClassifyState(windingC, oilC, loadPercent float64) string {
 	switch {
 	case windingC >= CriticalWindingC || oilC >= CriticalOilC || loadPercent >= CriticalLoadPercent:
 		return StateCritical

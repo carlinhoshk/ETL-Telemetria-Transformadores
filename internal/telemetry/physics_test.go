@@ -72,7 +72,7 @@ func TestClassify(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := classify(tc.w, tc.o, tc.l); got != tc.expected {
+			if got := ClassifyState(tc.w, tc.o, tc.l); got != tc.expected {
 				t.Fatalf("got %s, want %s", got, tc.expected)
 			}
 		})
