@@ -156,6 +156,13 @@ API contra Postgres real via httptest), 12 testes pytest do ML e E2E
 automatizado MQTT→ingestion→PostgreSQL→dbt silver (`scripts/e2e.sh` /
 `make e2e`). Detalhes em [docs/testing.md](docs/testing.md).
 
+**Fase 15 — Docker Compose: DONE.** `docker-compose.yml` sobe a plataforma
+toda (postgres, mosquitto, ml, ingestion, api + jobs simulator/dbt),
+`make demo` orquestra build→up→simulate→dbt→amostra da API. Dockerfiles
+Go multi-stage, ML e dbt; healthchecks em todos os serviços. Verificado:
+5 serviços healthy, frota de 40 transformadores, dbt 45 PASS. Detalhes em
+[docs/compose.md](docs/compose.md).
+
 ## Execução
 
 - `make build` / `make test` — compila e roda os testes Go.

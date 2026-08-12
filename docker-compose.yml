@@ -1,0 +1,108 @@
+name: transformers-platform
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: transformers
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d transformers"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./deploy/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      # Retained pub/sub round-trip: publishes and immediately subscribes.
+      test: ["CMD-SHELL", "mosquitto_pub -r -h localhost -t health -m ok && mosquitto_sub -h localhost -t health -C 1 -W 3"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+
+  ml:
+    build:
+      context: .
+      dockerfile: docker/ml.Dockerfile
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/health')"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["ingestion", "-broker", "tcp://mosquitto:1883", "-store", "postgres", "-csv", "/seed/transformers.csv"]
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/transformers?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["api", "-addr", ":8080", "-ml-url", "http://ml:8081"]
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/transformers?sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ml:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health | grep -q ok || exit 1"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+
+  simulator:
+    profiles: ["jobs"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["simulator", "-broker", "tcp://mosquitto:1883", "-n", "3", "-ticks", "10", "-interval", "1", "-intensity", "1.3", "-csv", "/seed/transformers.csv"]
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: "no"
+
+  dbt:
+    profiles: ["jobs"]
+    build:
+      context: .
+      dockerfile: docker/dbt.Dockerfile
+    command: ["sh", "-c", "dbt seed --profiles-dir . && dbt run --profiles-dir . && dbt test --profiles-dir ."]
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_PORT: "5432"
+      DB_NAME: transformers
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  pgdata:

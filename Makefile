@@ -1,7 +1,7 @@
 # Project: Transformer Digital Twin / Data Platform
 # Local development targets. Grows with each phase.
 
-.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db dbt dbt-silver dbt-gold ml-test ml-run api-test
+.PHONY: help check build test seed demo mqtt-broker mqtt-broker-stop publish ingest ingest-db backfill smoke db db-stop migrate test-db dbt dbt-silver dbt-gold ml-test ml-run api-test e2e demo
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -117,9 +117,21 @@ check: ## Consistency checks (docs, formatting) - grows per phase
 	@test -f docs/api.md
 	@test -f docs/observability.md
 	@test -f docs/testing.md
+	@test -f docs/compose.md
 	@test -f docs/api-contracts.md
 	@test -f docs/siemens-emulation.md
 	@test -s dbt/seeds/transformers.csv
 
-demo: ## Full local demo (implemented in Phase 15)
-	@echo "demo target arrives with Phase 15 (Docker Compose)."
+demo: ## Full demo: compose stack + simulate + dbt (+ print API sample)
+	@docker compose up -d --build
+	@docker compose run --rm simulator
+	@docker compose run --rm dbt
+	@echo "API health:  http://localhost:8080/health"
+	@echo "API metrics: http://localhost:8080/metrics"
+	@curl -s http://localhost:8080/transformers/TR-001/statistics | head -c 300
+
+demo-up: ## Build + start the compose stack (postgres, mosquitto, ml, ingestion, api)
+	@docker compose up -d --build
+
+demo-down: ## Tear down the compose stack (keeps the pgdata volume)
+	@docker compose down
