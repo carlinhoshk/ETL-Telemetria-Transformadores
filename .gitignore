@@ -1,0 +1,38 @@
+# Go
+bin/
+*.exe
+*.test
+*.out
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# dbt
+target/
+dbt_packages/
+logs/
+dbt.log
+
+# Local data
+data/
+*.csv
+!dbt/seeds/*.csv
+
+# Environment
+.env
+.env.local
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Cloud artifacts (never commit)
+*.pem
+*.key
