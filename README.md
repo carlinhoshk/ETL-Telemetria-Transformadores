@@ -1,5 +1,9 @@
 # ETL Telemetria de Transformadores
 
+<p align="center">
+  <img src="assets/logo.svg" alt="ETL Telemetria de Transformadores" width="520">
+</p>
+
 Plataforma de dados e backend que simula transformadores de potência e o
 fluxo completo de telemetria — **MQTT → ingestion → Postgres → dbt → ML →
 API** — inspirada em arquiteturas públicas de monitoramento de

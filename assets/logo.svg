@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 180" role="img" aria-label="ETL Telemetria de Transformadores">
+  <rect width="640" height="180" rx="16" fill="#0d1117"/>
+  <g stroke="#35c7f0" stroke-width="10" stroke-linecap="round" fill="none">
+    <path d="M48 48v84M48 84h56"/>
+    <path d="M136 48v84"/>
+    <path d="M168 96l28-48 28 48"/>
+    <path d="M232 48v84"/>
+    <circle cx="264" cy="76" r="26"/>
+    <path d="M264 102v30"/>
+  </g>
+  <circle cx="340" cy="90" r="14" fill="#35c7f0"/>
+  <circle cx="384" cy="90" r="14" fill="#35c7f0" opacity="0.65"/>
+  <circle cx="428" cy="90" r="14" fill="#35c7f0" opacity="0.35"/>
+  <text x="48" y="150" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#e6edf3">ETL · Telemetria de Transformadores</text>
+  <text x="48" y="172" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#8b949e">MQTT → Go · Postgres · dbt · Python ML · Go API</text>
+</svg>
